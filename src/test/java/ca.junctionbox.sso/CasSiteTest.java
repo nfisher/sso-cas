@@ -4,16 +4,16 @@ import static org.testng.Assert.*;
 import org.testng.annotations.*;
 
 public class CasSiteTest {
-	private CasSite site;
+	private CasSite _site;
 
 	@BeforeMethod
 	public void setup() {
-		site = new CasSite("https://te.thoughtworks.com/");
+		_site = new CasSite("https://te.thoughtworks.com/");
 	}
 
 	@AfterMethod
 	public void teardown() {
-		site = null;
+		_site = null;
 	}
 	
 	@Test

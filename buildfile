@@ -8,7 +8,7 @@ define 'te' do
 
 	run.using :main => MAIN
 
-	compile.with JSOUP
+	compile.using(:lint => 'all').with(JSOUP)
 
 	manifest['Main-Class'] = MAIN
 	package(:jar).merge(JSOUP)
