@@ -1,10 +1,10 @@
-package ca.junctionbox.sso;
+package ca.junctionbox.sso.models;
 
-public class RsaAuthenticationModel {
+public class RsaAuthentication {
     String _code;
     String _username;
 
-    public RsaAuthenticationModel(String $username, String $code) {
+    public RsaAuthentication(String $username, String $code) {
         _code = $code;
         _username = $username;
     }

@@ -4,18 +4,20 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
+
+import ca.junctionbox.sso.models.Configurable;
+import ca.junctionbox.sso.models.TimeAppConfig;
 import org.jsoup.Jsoup;
 import org.jsoup.Connection;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
-public class CasSite {
-	private String _site;
+public class CasSite implements Configurable {
+    private String _site;
 	private Connection _conn;
 
-	public CasSite(String $site) {
-		_site = $site;
+	public CasSite() {
 	}
 
     // TODO: Refactor to separate page requests and document processing.
@@ -37,6 +39,11 @@ public class CasSite {
 
 		Document landing_page = post(_conn.response().url().toString(), data, _conn.response().cookies());
 	}
+
+    @Override
+    public void applyConfig(TimeAppConfig $config) {
+        _site = $config.site();
+    }
 
 	public Document get(String $url) throws IOException {
 		_conn = Jsoup.connect($url);
