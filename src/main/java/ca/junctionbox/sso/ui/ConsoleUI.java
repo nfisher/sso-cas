@@ -3,6 +3,7 @@ package ca.junctionbox.sso.ui;
 
 import ca.junctionbox.sso.models.RsaAuthentication;
 
+import javax.sound.sampled.Line;
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.IOException;
@@ -16,9 +17,10 @@ public class ConsoleUI {
         _out = $out;
     }
 
-    public RsaAuthentication login() {
+    public RsaAuthentication login(String $defaultUsername) {
         try {
-            return new RsaAuthentication(username(), passcode());
+            return new RsaAuthentication(readString("Username (" + $defaultUsername + "): ", $defaultUsername),
+                                         readString("Passcode: ", ""));
         } catch(IOException $ioException) {
             // TODO: Rethrow for an exit?
         }
@@ -26,15 +28,17 @@ public class ConsoleUI {
         return null;
     }
 
-    protected String username() throws IOException {
-        _out.write("Username: ");
+    public Integer readInt(String $prompt, int $default) throws IOException {
+        _out.write($prompt);
         _out.flush();
-        return _in.readLine();
+        String input = _in.readLine();
+        return (input.length() == 0) ? $default : Integer.parseInt(input);
     }
 
-    protected String passcode() throws IOException {
-        _out.write("Passcode: ");
+    public String readString(String $prompt, String $default) throws IOException {
+        _out.write($prompt);
         _out.flush();
-        return _in.readLine();
+        String line = _in.readLine();
+        return (line.equals("")) ? $default : line;
     }
 }

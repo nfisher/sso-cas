@@ -1,19 +1,16 @@
 package ca.junctionbox.sso;
 
 import java.io.*;
-import java.lang.reflect.Array;
-import java.util.Queue;
+import java.util.HashMap;
 
-import ca.junctionbox.sso.commands.CommandManager;
-import ca.junctionbox.sso.commands.LoadConfig;
-import ca.junctionbox.sso.models.Configurable;
 import ca.junctionbox.sso.models.RsaAuthentication;
-import ca.junctionbox.sso.models.TimeAppConfig;
+import ca.junctionbox.sso.models.AppConfig;
 import ca.junctionbox.sso.ui.ConsoleUI;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 
-import static java.lang.System.err;
-import static java.lang.System.exit;
-import static java.lang.System.out;
+import static java.lang.System.*;
 
 
 public class TimeApp {
@@ -25,7 +22,7 @@ public class TimeApp {
 
 	public static void main(String [] $args) {
         /*
-        TimeAppConfig config = new TimeAppConfig();
+        AppConfig config = new AppConfig();
 
         when(LOAD_CONFIG).run(LoadConfig.class).with(config).onSuccess(LOGIN).onFailure();
         when(LOGIN).run(Login.class).with(ui, config).onSuccess().onFailure();
@@ -53,32 +50,52 @@ public class TimeApp {
                 exit(2);
             }
 
+            AppConfig config = new AppConfig();
+            config.load(new FileInputStream(ini));
+
 			CasSite site = new CasSite();
             ConsoleUI ui = new ConsoleUI(new BufferedReader(new InputStreamReader(System.in)), new BufferedWriter(new OutputStreamWriter(System.out)));
+            RsaAuthentication auth = ui.login(config.username());
 
-            RsaAuthentication auth = ui.login();
 
+            site.config(config);
             site.login(auth.username(), auth.code());
 
+            // TODO: Implement a clone function.
+            Document time_sheets_home = site.navigateTo("time_sheets");
+            Element time = time_sheets_home.getElementById("time");
+            if(time == null) {
+                err.println("Uh-oh, lost track of time...think you might need to re-authenticate.");
+            }
+            Elements rows = time.getElementsByTag("tr");
 
-            /*
-            RsaAuthentication auth = sulu.authenticate(config.username());
+            // prints the header and assumes no more than 4 months of timesheets is likely to be cloned
+            for(int i = 0; i < 19; i++) {
+                out.println(i + ") " + rows.get(i).child(0).text() + " / " + rows.get(i).child(2).text() + " / " + rows.get(i).child(3).text());
+            }
 
-            site.login(auth.username(), auth.code());
+            int row_number = ui.readInt("Time sheet to clone (1): ", 1);
+            Document clone = site.navigateTo(rows.get(row_number).child(7).getElementsByTag("a").get(1).attr("href"));
+            Element cloned_form = clone.getElementsByTag("form").first();
+            HashMap<String, String> cloned_data = new HashMap<String, String>();
 
+            // TODO: Post data from form to action url.
 
+            for(Element input : cloned_form.getElementsByTag("input")) {
+                if (input.attr("type").equals("radio")) {
+                    if(input.attr("checked").equals("checked")) {
+                        out.println(input.attr("name") + " = " + input.attr("value"));
+                    }
+                } else {
+                    out.println(input.attr("name") + " = " + input.attr("value"));
+                }
+            }
 
-			BufferedReader stdin = new BufferedReader(new InputStreamReader(System.in));
-            String password = stdin.readLine();
+            for(Element select : cloned_form.getElementsByTag("select")) {
+                out.println(select.attr("name"));
+            }
 
-			out.println("Attempting connection to CAS site as " + prop.getProperty("username", "") + ".");
-            site.login(prop.getProperty("username", ""), password);
-
-			out.println("Logged in");
-			Document new_timesheet = site.navigateTo("time_sheets/new");
-            out.println(new_timesheet);
-
-            */
+            //site.postTo(cloned_form.attr("action"), cloned_data);
 		} catch(FileNotFoundException ex) {
 			err.println("[ERROR] Unable to open configuration file.");
             exit(2);

@@ -3,26 +3,33 @@ package ca.junctionbox.sso;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Iterator;
 
 import ca.junctionbox.sso.models.Configurable;
-import ca.junctionbox.sso.models.TimeAppConfig;
-import org.jsoup.Jsoup;
-import org.jsoup.Connection;
+import ca.junctionbox.sso.models.AppConfig;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 public class CasSite implements Configurable {
-    private String _site;
-	private Connection _conn;
+    private Connector _connector;
+    private AppConfig _config;
 
-	public CasSite() {
-	}
+    public Connector connector() {
+        if(_connector == null) {
+            _connector = new Connector();
+        }
+
+        return _connector;
+    }
+
+    public void connector(Connector $connector) {
+        _connector = $connector;
+    }
+
 
     // TODO: Refactor to separate page requests and document processing.
-	public void login(String $username, String $password) throws IOException {
-		Document login_page = get(_site);
+	public boolean login(String $username, String $password) throws IOException {
+		Document login_page = connector().get(_config.site());
 		Element form = login_page.getElementsByTag("form").first();
 
 		HashMap<String,String> data = new HashMap<String,String>();
@@ -37,43 +44,24 @@ public class CasSite implements Configurable {
 		data.put("username", $username);
 		data.put("password", $password);
 
-		Document landing_page = post(_conn.response().url().toString(), data, _conn.response().cookies());
+		connector().post(connector().redirectURL(), data, connector().cookies());
+        return connector().isOkay();
 	}
 
     @Override
-    public void applyConfig(TimeAppConfig $config) {
-        _site = $config.site();
+    public void config(AppConfig $config) {
+        _config = $config;
     }
 
-	public Document get(String $url) throws IOException {
-		_conn = Jsoup.connect($url);
-		return _conn.get();
+    public AppConfig config() {
+        return _config;
+    }
+
+	public Document navigateTo(String $path) throws IOException {
+		return connector().get(_config.site() + $path, connector().cookies());
 	}
 
-	public Document get(String $url, Map $cookies) throws IOException {
-		_conn = Jsoup.connect($url);
-
-		for(Iterator it = $cookies.entrySet().iterator(); it.hasNext(); ) {
-			Map.Entry entry = (Map.Entry)it.next();
-			_conn.cookie((String)entry.getKey(), (String)entry.getValue());
-		}
-
-		return _conn.get();
-	}
-
-	public Document post(String $url, Map<String,String> $data, Map<String,String> $cookies) throws IOException {
-		_conn = Jsoup.connect($url);
-
-		for(Iterator it = $cookies.entrySet().iterator(); it.hasNext(); ) {
-			Map.Entry entry = (Map.Entry)it.next();
-			_conn.cookie((String)entry.getKey(), (String)entry.getValue());
-		}
-
-		_conn.data($data);
-		return _conn.post();
-	}
-
-	public Document navigateTo(String path) throws IOException {
-		return get(_site + path, _conn.response().cookies());
-	}
+    public Document postTo(String $action, Map<String,String> $data) throws IOException {
+        return connector().post(_config.site() + $action, $data, connector().cookies());
+    }
 }

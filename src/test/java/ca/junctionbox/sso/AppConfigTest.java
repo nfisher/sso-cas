@@ -1,17 +1,17 @@
 package ca.junctionbox.sso;
 
-import ca.junctionbox.sso.models.TimeAppConfig;
+import ca.junctionbox.sso.models.AppConfig;
 import org.testng.Assert;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 
-public class TimeAppConfigTest {
-    TimeAppConfig _instance;
+public class AppConfigTest {
+    AppConfig _instance;
 
     @BeforeMethod
     public void setUp() throws Exception {
-        _instance = new TimeAppConfig();
+        _instance = new AppConfig();
         _instance.setProperty("site", "asite");
         _instance.setProperty("username", "auser");
     }
