@@ -5,7 +5,6 @@ import java.net.SocketTimeoutException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 
 import ca.junctionbox.sso.models.RsaAuthentication;
@@ -65,7 +64,7 @@ public class TimeApp {
             site.config(config);
             site.login(auth.username(), auth.code());
 
-            String href = listTimeSheets(site, ui);
+            String href = listTimeSheets(ui, site.navigateTo("time_sheets"));
 
             Document clone = site.navigateTo(href);
             Element cloned_form = clone.getElementsByTag("form").first();
@@ -117,10 +116,9 @@ public class TimeApp {
         exit(0);
 	}
 
-    private static String listTimeSheets(CasSite site, ConsoleUI ui) throws IOException {
+    private static String listTimeSheets(ConsoleUI $ui, Document $time_sheet_list) throws IOException {
         // TODO: Create model of time sheet and separate UI interactions.
-        Document time_sheets_home = site.navigateTo("time_sheets");
-        Element time = time_sheets_home.getElementById("time");
+        Element time = $time_sheet_list.getElementById("time");
         if(time == null) {
             err.println("Uh-oh, lost track of time...think you might need to re-authenticate.");
             System.exit(1);
@@ -131,6 +129,6 @@ public class TimeApp {
         for(int i = 0; i < 19; i++) {
             out.println(i + ") " + rows.get(i).child(0).text() + " / " + rows.get(i).child(2).text() + " / " + rows.get(i).child(3).text());
         }
-        return rows.get(ui.readInt("Time sheet to clone (1): ", 1)).child(7).getElementsByTag("a").get(1).attr("href");
+        return rows.get($ui.readInt("Time sheet to clone (1): ", 1)).child(7).getElementsByTag("a").get(1).attr("href");
     }
 }
