@@ -69,40 +69,13 @@ public class TimeApp {
 
             Document clone = site.navigateTo(href);
             Element cloned_form = clone.getElementsByTag("form").first();
-            HashMap<String, String> cloned_data = new HashMap<String, String>();
-
-            for(Element input : cloned_form.getElementsByTag("input")) {
-                if (input.attr("type").equals("radio")) {
-                    if(input.attr("checked").equals("checked")) {
-                        cloned_data.put(input.attr("name"), input.attr("value"));
-                    }
-                } else if(input.attr("type").equals("submit")) {
-                    if(input.attr("value").endsWith("draft")) {
-                        cloned_data.put(input.attr("name"), input.attr("value"));
-                    }
-                } else {
-                    cloned_data.put(input.attr("name"), input.attr("value"));
-                }
-            }
-
-            for(Element select : cloned_form.getElementsByTag("select")) {
-                Element selected_option = select.select("option[selected]").first();
-                if(selected_option != null) {
-                    cloned_data.put(select.attr("name"), select.select("option[selected]").first().val());
-                }
-            }
-            Calendar calendar = Calendar.getInstance();
-            calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
-            calendar.setFirstDayOfWeek(Calendar.MONDAY);
-            DateFormat date_format = new SimpleDateFormat("dd MMM yyyy");
-            String week_ending = date_format.format(calendar.getTime());
-
-            cloned_data.put("time_sheet[week_ending_date_string]",  ui.readString("Week Ending (" + week_ending + "): ", week_ending));
+            HashMap<String, String> cloned_data = formToData(cloned_form);
+            cloned_data.put("time_sheet[week_ending_date_string]", ui.readString("Week Ending (" + lastDayOfThisBusinessWeek() + "): ", lastDayOfThisBusinessWeek()));
 
             Document save = site.postTo(cloned_form.attr("action"), cloned_data);
+
             err.println(save.select("div#flash_notice").text());
             err.println(save.select("div#errorExplanation"));
-
 		} catch(SocketTimeoutException ex) {
             err.println("[ERROR] Socket Timeout.");
             exit(3);
@@ -110,12 +83,48 @@ public class TimeApp {
 			err.println("[ERROR] Unable to open configuration file.");
             exit(2);
 		} catch(IOException ex) {
-			err.println("[ERROR] A connection error occured.");
+			err.println("[ERROR] A connection error occurred.");
+            ex.printStackTrace();
             exit(1);
 		}
 
         exit(0);
 	}
+
+    private static HashMap<String, String> formToData(Element $cloned_form) throws IOException {
+        HashMap<String, String> cloned_data = new HashMap<String, String>();
+
+        for(Element input : $cloned_form.getElementsByTag("input")) {
+            if (input.attr("type").equals("radio")) {
+                if(input.attr("checked").equals("checked")) {
+                    cloned_data.put(input.attr("name"), input.attr("value"));
+                }
+            } else if(input.attr("type").equals("submit")) {
+                if(input.attr("value").endsWith("draft")) {
+                    cloned_data.put(input.attr("name"), input.attr("value"));
+                }
+            } else {
+                cloned_data.put(input.attr("name"), input.attr("value"));
+            }
+        }
+
+        for(Element select : $cloned_form.getElementsByTag("select")) {
+            Element selected_option = select.select("option[selected]").first();
+            if(selected_option != null) {
+                cloned_data.put(select.attr("name"), select.select("option[selected]").first().val());
+            }
+        }
+
+        return cloned_data;
+    }
+
+    private static String lastDayOfThisBusinessWeek() {
+        Calendar calendar = Calendar.getInstance();
+        calendar.set(Calendar.DAY_OF_WEEK, Calendar.SUNDAY);
+        calendar.setFirstDayOfWeek(Calendar.MONDAY);
+        DateFormat date_format = new SimpleDateFormat("dd MMM yyyy");
+        return date_format.format(calendar.getTime());
+    }
 
     private static Elements listTimeSheets(Document $time_sheet_list) throws IOException {
         // TODO: Create model of time sheet list and separate UI interactions.

@@ -13,5 +13,5 @@ define 'te' do
 	manifest['Main-Class'] = MAIN
 	package(:jar).merge(JSOUP)
 
-	test.using(:testng)
+	test.using(:junit4)
 end
