@@ -16,7 +16,7 @@ define 'cas-sso' do
 		run.using :main => TIME_MAIN
 
 		manifest['Main-Class'] = TIME_MAIN
-		package(:jar).with(projects('shared'))
+		package(:jar).merge(project('cas-sso:shared').packages.select { |pkg| pkg.type == :jar })
 	end
 
 	define 'rm' do
@@ -24,6 +24,6 @@ define 'cas-sso' do
 		run.using :main => RM_MAIN
 
 		manifest['Main-Class'] = RM_MAIN
-		package(:jar).with(projects('shared'))
+		package(:jar).merge(project('cas-sso:shared').packages.select { |pkg| pkg.type == :jar })
 	end
 end
