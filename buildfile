@@ -1,17 +1,29 @@
-repositories.remote << 'http://www.ibiblio.org/maven2'
-
 JSOUP='org.jsoup:jsoup:jar:1.6.1'
-MAIN = 'ca.junctionbox.sso.TimeApp'
+TIME_MAIN = 'ca.junctionbox.sso.TimeApp'
+RM_MAIN = 'ca.junctionbox.sso.ResourceApp'
 
-define 'te' do
+define 'cas-sso' do
 	project.version = '0.1.0'
+	test.using(:testng)
 
-	run.using :main => MAIN
+	define 'shared' do
+		compile.using(:lint => 'all').with(JSOUP)
+		package(:jar).merge(JSOUP)
+	end
 
-	compile.using(:lint => 'all').with(JSOUP)
+	define 'te' do
+		compile.using(:lint => 'all').with(JSOUP, project('shared'))
+		run.using :main => TIME_MAIN
 
-	manifest['Main-Class'] = MAIN
-	package(:jar).merge(JSOUP)
+		manifest['Main-Class'] = TIME_MAIN
+		package(:jar).with(projects('shared'))
+	end
 
-	test.using(:junit4)
+	define 'rm' do
+		compile.using(:lint => 'all').with(JSOUP, project('shared'))
+		run.using :main => RM_MAIN
+
+		manifest['Main-Class'] = RM_MAIN
+		package(:jar).with(projects('shared'))
+	end
 end
